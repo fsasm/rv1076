@@ -7,4 +7,4 @@ license = "GPL-3.0"
 [dependencies]
 # As of 2017-04-15 plex 0.0.3 is not compilable with rustc nightly. Instead
 # use the git upstream repo.
-plex = { git = "https://github.com/goffrie/plex.git" } 
+plex = { git = "https://github.com/goffrie/plex.git", rev = "83f1973" } 
