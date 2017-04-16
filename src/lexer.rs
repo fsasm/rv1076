@@ -48,6 +48,8 @@ lexer! {
 
     r"'.'" => (Token::CharacterLiteral(text.chars().skip(1).next().unwrap()), text),
 
+    r"[a-zA-Z](_?[a-zA-Z0-9])*" => (Token::Identifier(text.to_string()), text), // basic identifier
+
     // must always be the last
     r"." => (Token::Unknown, text)
 }
@@ -104,4 +106,39 @@ fn test_char_lit() {
                Some((Token::CharacterLiteral('8'), "'8'")));
     assert_eq!(next_token(&mut char_lit),
                Some((Token::CharacterLiteral('I'), "'I'")));
+}
+
+#[test]
+fn test_basic_ident() {
+    let mut ident = "basic_identifier1 basic_identifier2 not_valid_ valid 1not_valid AgAiN_valID but__invalid _alsoInvalid";
+    assert_eq!(next_token(&mut ident),
+               Some((Token::Identifier("basic_identifier1".to_string()), "basic_identifier1")));
+    assert_eq!(next_token(&mut ident), Some((Token::Whitespace, " ")));
+    assert_eq!(next_token(&mut ident),
+               Some((Token::Identifier("basic_identifier2".to_string()), "basic_identifier2")));
+    assert_eq!(next_token(&mut ident), Some((Token::Whitespace, " ")));
+    assert_eq!(next_token(&mut ident),
+               Some((Token::Identifier("not_valid".to_string()), "not_valid")));
+    assert_eq!(next_token(&mut ident), Some((Token::Unknown, "_")));
+    assert_eq!(next_token(&mut ident), Some((Token::Whitespace, " ")));
+    assert_eq!(next_token(&mut ident),
+               Some((Token::Identifier("valid".to_string()), "valid")));
+    assert_eq!(next_token(&mut ident), Some((Token::Whitespace, " ")));
+    assert_eq!(next_token(&mut ident), Some((Token::Unknown, "1")));
+    assert_eq!(next_token(&mut ident),
+               Some((Token::Identifier("not_valid".to_string()), "not_valid")));
+    assert_eq!(next_token(&mut ident), Some((Token::Whitespace, " ")));
+    assert_eq!(next_token(&mut ident),
+               Some((Token::Identifier("AgAiN_valID".to_string()), "AgAiN_valID")));
+    assert_eq!(next_token(&mut ident), Some((Token::Whitespace, " ")));
+    assert_eq!(next_token(&mut ident),
+               Some((Token::Identifier("but".to_string()), "but")));
+    assert_eq!(next_token(&mut ident), Some((Token::Unknown, "_")));
+    assert_eq!(next_token(&mut ident), Some((Token::Unknown, "_")));
+    assert_eq!(next_token(&mut ident),
+               Some((Token::Identifier("invalid".to_string()), "invalid")));
+    assert_eq!(next_token(&mut ident), Some((Token::Whitespace, " ")));
+    assert_eq!(next_token(&mut ident), Some((Token::Unknown, "_")));
+    assert_eq!(next_token(&mut ident),
+               Some((Token::Identifier("alsoInvalid".to_string()), "alsoInvalid")));
 }
