@@ -46,6 +46,8 @@ lexer! {
     r"--[^\n\r\v]*" => (Token::Comment, text), // FIXME plex doesn't allows \f
     r"/[*](~(.*[*]/.*))[*]/" => (Token::Comment, text),
 
+    r"'.'" => (Token::CharacterLiteral(text.chars().skip(1).next().unwrap()), text),
+
     // must always be the last
     r"." => (Token::Unknown, text)
 }
@@ -87,4 +89,19 @@ fn test_comments() {
     let mut cmt = "/* this is still\n a single -- comment/*\n */";
     assert_eq!(next_token(&mut cmt),
                Some((Token::Comment, "/* this is still\n a single -- comment/*\n */")));
+}
+
+#[test]
+fn test_char_lit() {
+    let mut char_lit = "'a' ' ' '8''I'";
+    assert_eq!(next_token(&mut char_lit),
+               Some((Token::CharacterLiteral('a'), "'a'")));
+    assert_eq!(next_token(&mut char_lit), Some((Token::Whitespace, " ")));
+    assert_eq!(next_token(&mut char_lit),
+               Some((Token::CharacterLiteral(' '), "' '")));
+    assert_eq!(next_token(&mut char_lit), Some((Token::Whitespace, " ")));
+    assert_eq!(next_token(&mut char_lit),
+               Some((Token::CharacterLiteral('8'), "'8'")));
+    assert_eq!(next_token(&mut char_lit),
+               Some((Token::CharacterLiteral('I'), "'I'")));
 }
