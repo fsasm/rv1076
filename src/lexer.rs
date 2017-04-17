@@ -49,6 +49,7 @@ lexer! {
     r"'.'" => (Token::CharacterLiteral(text.chars().skip(1).next().unwrap()), text),
 
     r"[a-zA-Z](_?[a-zA-Z0-9])*" => (Token::Identifier(text.to_string()), text), // basic identifier
+    r"\\([^\\]|\\\\)*\\" => (Token::Identifier(text.replace(r"\\", r"\")), text),
 
     // must always be the last
     r"." => (Token::Unknown, text)
@@ -110,7 +111,8 @@ fn test_char_lit() {
 
 #[test]
 fn test_basic_ident() {
-    let mut ident = "basic_identifier1 basic_identifier2 not_valid_ valid 1not_valid AgAiN_valID but__invalid _alsoInvalid";
+    let mut ident = "basic_identifier1 basic_identifier2 not_valid_ valid 1not_valid AgAiN_valID \
+                     but__invalid _alsoInvalid";
     assert_eq!(next_token(&mut ident),
                Some((Token::Identifier("basic_identifier1".to_string()), "basic_identifier1")));
     assert_eq!(next_token(&mut ident), Some((Token::Whitespace, " ")));
@@ -141,4 +143,25 @@ fn test_basic_ident() {
     assert_eq!(next_token(&mut ident), Some((Token::Unknown, "_")));
     assert_eq!(next_token(&mut ident),
                Some((Token::Identifier("alsoInvalid".to_string()), "alsoInvalid")));
+}
+#[test]
+fn test_ext_ident() {
+    let mut ident = "\\abc\\ \\a\\\\bc\\ normal_ident \\some_\\\\more\\ \\inv\\alid\\";
+    assert_eq!(next_token(&mut ident),
+               Some((Token::Identifier("\\abc\\".to_string()), "\\abc\\")));
+    assert_eq!(next_token(&mut ident), Some((Token::Whitespace, " ")));
+    assert_eq!(next_token(&mut ident),
+               Some((Token::Identifier("\\a\\bc\\".to_string()), "\\a\\\\bc\\")));
+    assert_eq!(next_token(&mut ident), Some((Token::Whitespace, " ")));
+    assert_eq!(next_token(&mut ident),
+               Some((Token::Identifier("normal_ident".to_string()), "normal_ident")));
+    assert_eq!(next_token(&mut ident), Some((Token::Whitespace, " ")));
+    assert_eq!(next_token(&mut ident),
+               Some((Token::Identifier("\\some_\\more\\".to_string()), "\\some_\\\\more\\")));
+    assert_eq!(next_token(&mut ident), Some((Token::Whitespace, " ")));
+    assert_eq!(next_token(&mut ident),
+               Some((Token::Identifier("\\inv\\".to_string()), "\\inv\\")));
+    assert_eq!(next_token(&mut ident),
+               Some((Token::Identifier("alid".to_string()), "alid")));
+    assert_eq!(next_token(&mut ident), Some((Token::Unknown, "\\")));
 }
